@@ -23,7 +23,7 @@ GENERATION_ARGS = dict(temperature=0.0, max_tokens=500)
 
 # ------------------ API Setup ------------------
 def get_api_key() -> str:
-    return st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+    return os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
 
 API_KEY = get_api_key()
 client = OpenAI(api_key=API_KEY)
