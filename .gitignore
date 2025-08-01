@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+.venv_massaigpt2/
+venv_massaigpt2/
+*.log
+.DS_Store
+*.sqlite3
