@@ -15,6 +15,10 @@ from langchain_community.vectorstores import FAISS
 from langchain.schema import Document
 from langchain_openai import OpenAIEmbeddings
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 warnings.filterwarnings("ignore")
 
 GENERATION_MODEL = "gpt-4o"
@@ -23,8 +27,8 @@ GENERATION_ARGS = dict(temperature=0.0, max_tokens=500)
 
 # ------------------ API Setup ------------------
 def get_api_key() -> str:
-    return os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
-
+    return os.getenv("OPENAI_API_KEY") 
+    
 API_KEY = get_api_key()
 client = OpenAI(api_key=API_KEY)
 
@@ -100,7 +104,7 @@ def run_rag_query(query: str, retriever):
 # ------------------ Email Upload ------------------
 EMAIL_SENDER = "larkhoon.leem@gmail.com"
 EMAIL_RECEIVER = "larkhoon.leem@gmail.com"
-EMAIL_PASSWORD = st.secrets.get("EMAIL_PASSWORD")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 def send_email_with_attachment(file):
     msg = EmailMessage()
