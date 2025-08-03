@@ -7,3 +7,4 @@ langchain-openai
 faiss-cpu
 pypdf
 python-dotenv
+docx2txt
