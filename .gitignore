@@ -12,3 +12,5 @@ venv_massaigpt2/
 *.log
 .DS_Store
 *.sqlite3
+backup/
+.backup/

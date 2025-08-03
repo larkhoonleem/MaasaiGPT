@@ -10,7 +10,7 @@ from typing import List
 from openai import OpenAI
 import tiktoken
 
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
 from langchain_community.vectorstores import FAISS
 from langchain.schema import Document
 from langchain_openai import OpenAIEmbeddings
@@ -63,18 +63,90 @@ def split_text_by_tokens(text: str, max_tokens: int = 300) -> List[str]:
         chunks.append("\n".join(cur))
     return chunks
 
-# ------------------ Load PDFs ------------------
-def load_and_chunk_pdfs(folder: str, max_tokens: int = 300):
-    all_docs = []
-    for path in glob.glob(os.path.join(folder, "*.pdf")):
-        loader = PyPDFLoader(path)
-        all_docs.extend(loader.load())
 
+# ------------------ Load Documents ------------------
+def load_single_document(file_path: str) -> List[Document]:
+    """Load a single document based on its file extension"""
+    file_extension = os.path.splitext(file_path)[1].lower()
+    
+    try:
+        if file_extension == ".pdf":
+            loader = PyPDFLoader(file_path)
+            return loader.load()
+        elif file_extension == ".docx":
+            loader = Docx2txtLoader(file_path)
+            return loader.load()
+        elif file_extension in [".txt", ".text"]:
+            loader = TextLoader(file_path, encoding='utf-8')
+            return loader.load()
+        else:
+            st.warning(f"Unsupported file type: {file_extension} for file {file_path}")
+            return []
+    except Exception as e:
+        st.error(f"Error loading {file_path}: {e}")
+        return []
+
+# # ------------------ Load PDFs ------------------
+# def load_and_chunk_pdfs(folder: str, max_tokens: int = 300):
+#     all_docs = []
+#     for path in glob.glob(os.path.join(folder, "*.pdf")):
+#         loader = PyPDFLoader(path)
+#         all_docs.extend(loader.load())
+
+#     all_chunks = []
+#     for doc in all_docs:
+#         chunks = split_text_by_tokens(doc.page_content, max_tokens)
+#         all_chunks.extend([Document(page_content=c) for c in chunks])
+#     return all_chunks
+
+
+def load_and_chunk_documents(folder: str, max_tokens: int = 300):
+    """Load and chunk documents from multiple file formats"""
+    all_docs = []
+    
+    # Supported file patterns
+    file_patterns = [
+        os.path.join(folder, "*.pdf"),
+        os.path.join(folder, "*.docx"),
+        os.path.join(folder, "*.txt"),
+        os.path.join(folder, "*.text")
+    ]
+    
+    # Load all supported files
+    for pattern in file_patterns:
+        for file_path in glob.glob(pattern):
+            #st.info(f"Loading: {os.path.basename(file_path)}")
+            docs = load_single_document(file_path)
+            if docs:
+                # Add metadata about the source file
+                for doc in docs:
+                    doc.metadata.update({
+                        "source_file": os.path.basename(file_path),
+                        "file_type": os.path.splitext(file_path)[1].lower()
+                    })
+                all_docs.extend(docs)
+    
+    if not all_docs:
+        st.warning(f"No supported documents found in {folder}")
+        return []
+    
+    st.success(f"Loaded {len(all_docs)} document pages from Maasai Cultural Database")
+    
+    # Chunk all documents
     all_chunks = []
     for doc in all_docs:
         chunks = split_text_by_tokens(doc.page_content, max_tokens)
-        all_chunks.extend([Document(page_content=c) for c in chunks])
+        for chunk_text in chunks:
+            # Create new document with chunk and preserve metadata
+            chunk_doc = Document(
+                page_content=chunk_text,
+                metadata=doc.metadata.copy()
+            )
+            all_chunks.append(chunk_doc)
+    
+    st.info(f"Created {len(all_chunks)} text chunks")
     return all_chunks
+
 
 def build_vectorstore(chunks: List[Document]):
     embedding = OpenAIEmbeddings(model=EMBEDDING_MODEL_NAME, openai_api_key=API_KEY)
@@ -82,7 +154,7 @@ def build_vectorstore(chunks: List[Document]):
 
 @st.cache_resource(show_spinner=False)
 def get_retriever(folder_path: str, max_tokens_per_chunk: int = 300):
-    chunks = load_and_chunk_pdfs(folder_path, max_tokens_per_chunk)
+    chunks = load_and_chunk_documents(folder_path, max_tokens_per_chunk)
     vs = build_vectorstore(chunks)
     return vs.as_retriever(search_kwargs={"k": 5})
 
@@ -129,8 +201,8 @@ uploaded_file = st.file_uploader("📁 Submit a file to update MAASAI Knowledge"
 if uploaded_file:
     send_email_with_attachment(uploaded_file)
 
-pdf_folder = "./pdfs"
-retriever = get_retriever(pdf_folder)
+documents_folder = "./documents"
+retriever = get_retriever(documents_folder)
 
 if query := st.chat_input("Ask me anything about the Maasai:"):
     st.chat_message("user").write(query)
