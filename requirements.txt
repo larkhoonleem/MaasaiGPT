@@ -8,3 +8,5 @@ faiss-cpu
 pypdf
 python-dotenv
 docx2txt
+sounddevice
+scipy

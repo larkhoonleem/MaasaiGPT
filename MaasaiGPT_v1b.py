@@ -144,7 +144,7 @@ def load_and_chunk_documents(folder: str, max_tokens: int = 300):
             )
             all_chunks.append(chunk_doc)
     
-    st.info(f"Created {len(all_chunks)} text chunks")
+    #st.info(f"Created {len(all_chunks)} text chunks")
     return all_chunks
 
 
