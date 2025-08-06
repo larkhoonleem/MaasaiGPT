@@ -10,3 +10,5 @@ python-dotenv
 docx2txt
 sounddevice
 scipy
+pyaudio
+portaudio
