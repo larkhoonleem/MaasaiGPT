@@ -1,1 +1,1 @@
-web: streamlit run MaasaiGPT_v1b.py --server.port=$PORT --server.address=0.0.0.0
+web: streamlit run MaasaiGPT_v3c.py --server.port=$PORT --server.address=0.0.0.0
