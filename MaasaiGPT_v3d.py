@@ -183,7 +183,7 @@ def run_rag_query(query: str, retriever):
 
 # ------------------ Email Upload ------------------
 EMAIL_SENDER = "larkhoon.leem@gmail.com"
-EMAIL_RECEIVER = "larkhoon.leem@gmail.com"
+EMAIL_RECEIVER = ["larkhoon.leem@gmail.com", "jessica@sandisca.org", "ethanleem1119@gmail.com"]
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 def send_email_with_attachment(file):
